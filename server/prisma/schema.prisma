@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     Int          @id @default(autoincrement())
+  username               String       @unique
+  password               String
+  imageURL               String?
+  bio                    String?
+  location               String?
+  posts                  Post[]
+  sentFriendRequests     Friendship[] @relation("friends")
+  receivedFriendRequests Friendship[] @relation("friendsOf")
+  createdAt              DateTime     @default(now())
+}
+
+model Friendship {
+  id         Int  @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  sender     User @relation("friends", fields: [senderId], references: [id])
+  receiver   User @relation("friendsOf", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String?
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  Int
+}
+
+model Token {
+  id         Int      @id @default(autoincrement())
+  tokenValue String
+  userId     Int
+  tokenType  String
+  expiration DateTime
+}
